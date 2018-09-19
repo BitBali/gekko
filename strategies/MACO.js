@@ -4,6 +4,18 @@ var log = require('../core/log.js');
 
 // let's create our own method
 var method = {};
+method.currentTick = 0;
+method.history = [
+  {
+    candle: candle,
+    ema: ema,
+    sma: sma,
+    // resEMA: resEMA,
+    // resSMA: resSMA,
+    // price: price,
+    // diff: diff,
+  },
+];
 
 // prepare everything our method needs
 method.init = function() {
@@ -13,7 +25,7 @@ method.init = function() {
   this.requiredHistory = this.tradingAdvisor.historySize;
 
   // define the indicators we need
-  this.addIndicator('dema', 'DEMA', this.settings);
+  this.addIndicator('ema', 'EMA', this.settings);
   this.addIndicator('sma', 'SMA', this.settings.weight);
 }
 
@@ -25,26 +37,65 @@ method.update = function(candle) {
 // for debugging purposes: log the last calculated
 // EMAs and diff.
 method.log = function() {
-  let dema = this.indicators.dema;
+  let ema = this.indicators.ema;
   let sma = this.indicators.sma;
 
-  log.debug('Calculated DEMA and SMA properties for candle:');
-  log.debug('\t Inner EMA:', dema.inner.result.toFixed(8));
-  log.debug('\t Outer EMA:', dema.outer.result.toFixed(8));
-  log.debug('\t DEMA:', dema.result.toFixed(5));
+  log.debug('Calculated EMA and SMA properties for candle:');
+  log.debug('\t Inner EMA:', ema.inner.result.toFixed(8));
+  log.debug('\t Outer EMA:', ema.outer.result.toFixed(8));
+  log.debug('\t EMA:', ema.result.toFixed(5));
   log.debug('\t SMA:', sma.result.toFixed(5));
-  log.debug('\t DEMA age:', dema.inner.age, 'candles');
+  log.debug('\t EMA age:', ema.inner.age, 'candles');
 }
 
+
+
+method.haveEnoughHistory = function() {
+  if(this.history.length < 5){
+    return false
+  }
+}
+
+method.getPrevious = function() {
+  return this.history[this.currentTick-1]
+}
+method.greaterHistoricSMA = function(number){
+  if (!this.haveEnoughHistory()) return false
+};
+method.greaterHistoricEMA = function(number){
+  if (!this.haveEnoughHistory()) return false
+};
+
 method.check = function(candle) {
-  let dema = this.indicators.dema;
+  let ema = this.indicators.ema;
   let sma = this.indicators.sma;
-  let resDEMA = dema.result;
+  let resEMA = ema.result;
   let resSMA = sma.result;
   let price = candle.close;
-  let diff = resSMA - resDEMA;
+  let diff = resSMA - resEMA;
 
-  let message = '@ ' + price.toFixed(8) + ' (' + resDEMA.toFixed(5) + '/' + diff.toFixed(5) + ')';
+  _.push(this.history, {
+      candle: candle,
+      ema: ema,
+      sma: sma,
+      resEMA: resEMA,
+      resSMA: resSMA,
+      price: price,
+      diff: diff,
+    })
+
+  this.currentTick += 1
+  if (!this.haveEnoughHistory) return;
+  if (sma > ema && this.greaterHistoricSMA(5)){
+    this.advice('buy')
+  } elseif(sma < ema && this.greaterHistoricEMA(5)) {
+    this.advice('sell')
+  } else {
+    this.advice('hold')
+  }
+
+
+  let message = '@ ' + price.toFixed(8) + ' (' + resEMA.toFixed(5) + '/' + diff.toFixed(5) + ')';
 
   if(diff > this.settings.thresholds.up) {
     log.debug('we are currently in uptrend', message);
