@@ -5,17 +5,7 @@ var log = require('../core/log.js');
 // let's create our own method
 var method = {};
 method.currentTick = 0;
-method.history = [
-  {
-    candle: candle,
-    ema: ema,
-    sma: sma,
-    // resEMA: resEMA,
-    // resSMA: resSMA,
-    // price: price,
-    // diff: diff,
-  },
-];
+method.history = [];
 
 // prepare everything our method needs
 method.init = function() {
@@ -61,12 +51,14 @@ method.getPrevious = function() {
 }
 method.greaterHistoricSMA = function(number){
   if (!this.haveEnoughHistory()) return false
+
 };
 method.greaterHistoricEMA = function(number){
   if (!this.haveEnoughHistory()) return false
 };
 
 method.check = function(candle) {
+
   let ema = this.indicators.ema;
   let sma = this.indicators.sma;
   let resEMA = ema.result;
@@ -75,16 +67,17 @@ method.check = function(candle) {
   let diff = resSMA - resEMA;
 
   _.push(this.history, {
-      candle: candle,
-      ema: ema,
-      sma: sma,
-      resEMA: resEMA,
-      resSMA: resSMA,
-      price: price,
-      diff: diff,
-    })
+    candle: candle,
+    ema: ema,
+    sma: sma,
+    resEMA: resEMA,
+    resSMA: resSMA,
+    price: price,
+    diff: diff,
+  })
 
   this.currentTick += 1
+
   if (!this.haveEnoughHistory) return;
   if (sma > ema && this.greaterHistoricSMA(5)){
     this.advice('buy')
