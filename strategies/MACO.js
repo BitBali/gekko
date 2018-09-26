@@ -41,8 +41,8 @@ method.log = function() {
   log.debug('Calculated EMA and SMA properties for candle:');
   // log.debug('\t Inner EMA:', ema.inner.result.toFixed(8));
   // log.debug('\t Outer EMA:', ema.outer.result.toFixed(8));
-  log.debug('\t EMA:', ema.result.toFixed(5));
-  log.debug('\t SMA:', sma.result.toFixed(5));
+  // log.debug('\t EMA:', ema.result.toFixed(5));
+  // log.debug('\t SMA:', sma.result.toFixed(5));
   // log.debug('\t EMA age:', ema.inner.age, 'candles');
 }
 
@@ -79,7 +79,7 @@ method.check = function(candle) {
   let price = candle.close;
   let diff = resSMA - resEMA;
 
-  _.push(this.history, {
+  this.history.push({
     candle: candle,
     ema: ema,
     sma: sma,
