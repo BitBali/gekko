@@ -94,16 +94,16 @@ method.check = function(candle) {
   let message = '@ ' + price.toFixed(8) + ' (' + resEMA.toFixed(5) + '/' + diff.toFixed(5) + ')';
 
   if (!this.haveEnoughHistory) {
-    log.error('We do not have enought history yet', message);
+    log.debug('We do not have enought history yet', message);
     this.advice()
   } else if (sma > ema && this.greaterHistoricSMA()) {
-    log.error('we are currently in uptrend', message);
+    log.debug('we are currently in uptrend', message);
     this.advice('long')
   } else if(sma < ema && this.greaterHistoricEMA()) {
-    log.error('we are currently in a downtrend', message);
+    log.debug('we are currently in a downtrend', message);
     this.advice('short')
   } else {
-    log.error('we are currently not in an up or down trend', message);
+    log.debug('we are currently not in an up or down trend', message);
     this.advice()
   }
 }
