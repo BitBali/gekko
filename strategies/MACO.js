@@ -43,7 +43,7 @@ method.log = function() {
   // log.debug('\t Outer EMA:', ema.outer.result.toFixed(8));
   log.debug('\t EMA:', ema.result.toFixed(5));
   log.debug('\t SMA:', sma.result.toFixed(5));
-  log.debug('\t EMA age:', ema.inner.age, 'candles');
+  // log.debug('\t EMA age:', ema.inner.age, 'candles');
 }
 
 method.haveEnoughHistory = function() {
