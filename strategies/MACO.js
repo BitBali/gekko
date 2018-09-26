@@ -39,8 +39,8 @@ method.log = function() {
   let sma = this.indicators.sma;
 
   log.debug('Calculated EMA and SMA properties for candle:');
-  log.debug('\t Inner EMA:', ema.inner.result.toFixed(8));
-  log.debug('\t Outer EMA:', ema.outer.result.toFixed(8));
+  // log.debug('\t Inner EMA:', ema.inner.result.toFixed(8));
+  // log.debug('\t Outer EMA:', ema.outer.result.toFixed(8));
   log.debug('\t EMA:', ema.result.toFixed(5));
   log.debug('\t SMA:', sma.result.toFixed(5));
   log.debug('\t EMA age:', ema.inner.age, 'candles');
