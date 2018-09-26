@@ -6,6 +6,7 @@ var log = require('../core/log.js');
 var method = {};
 method.currentTick = 0;
 method.history = [];
+method.averageConfirmationNumber = 5
 
 // prepare everything our method needs
 method.init = function() {
@@ -18,6 +19,13 @@ method.init = function() {
   this.addIndicator('ema', 'EMA', this.settings);
   this.addIndicator('sma', 'SMA', this.settings.weight);
 }
+
+const areAll = function(coll, func) {
+  return _.filter(coll, func).length == coll.length
+}
+
+
+
 
 // what happens on every new candle?
 method.update = function(candle) {
@@ -38,23 +46,28 @@ method.log = function() {
   log.debug('\t EMA age:', ema.inner.age, 'candles');
 }
 
-
-
 method.haveEnoughHistory = function() {
-  if(this.history.length < 5){
+  if(this.history.length < this.averageConfirmationNumber){
     return false
   }
+}
+
+method.lastHistory = function(amount = null) {
+  var number = amount || this.averageConfirmationNumber
+  if(!this.haveEnoughHistory) { return [] }
+  return _.takeRight(this.history, number)
 }
 
 method.getPrevious = function() {
   return this.history[this.currentTick-1]
 }
-method.greaterHistoricSMA = function(number){
+method.greaterHistoricSMA = function(){
   if (!this.haveEnoughHistory()) return false
-
+  return areAll(this.lastHistory(), (e) => { return e.sma > e.ema })
 };
-method.greaterHistoricEMA = function(number){
+method.greaterHistoricEMA = function(number = null){
   if (!this.haveEnoughHistory()) return false
+  return areAll(this.lastHistory(), (e) => { return e.ema > e.sma })
 };
 
 method.check = function(candle) {
@@ -78,39 +91,20 @@ method.check = function(candle) {
 
   this.currentTick += 1
 
-  if (!this.haveEnoughHistory) return;
-  if (sma > ema && this.greaterHistoricSMA(5)){
-    this.advice('buy')
-  } elseif(sma < ema && this.greaterHistoricEMA(5)) {
-    this.advice('sell')
-  } else {
-    this.advice('hold')
-  }
-
-
   let message = '@ ' + price.toFixed(8) + ' (' + resEMA.toFixed(5) + '/' + diff.toFixed(5) + ')';
 
-  if(diff > this.settings.thresholds.up) {
+  if (!this.haveEnoughHistory) {
+    log.debug('We do not have enought history yet', message);
+    this.advice()
+  } else if (sma > ema && this.greaterHistoricSMA()) {
     log.debug('we are currently in uptrend', message);
-
-    if(this.currentTrend !== 'up') {
-      this.currentTrend = 'up';
-      this.advice('long');
-    } else
-      this.advice();
-
-  } else if(diff < this.settings.thresholds.down) {
+    this.advice('long')
+  } else if(sma < ema && this.greaterHistoricEMA()) {
     log.debug('we are currently in a downtrend', message);
-
-    if(this.currentTrend !== 'down') {
-      this.currentTrend = 'down';
-      this.advice('short');
-    } else
-      this.advice();
-
+    this.advice('short')
   } else {
     log.debug('we are currently not in an up or down trend', message);
-    this.advice();
+    this.advice()
   }
 }
 
